@@ -1,0 +1,29 @@
+name: WebSocket and Redis Integration Test
+
+on:
+  push:
+    paths:
+      - 'backend/**'
+      - 'tests/test_socketio.py'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'tests/test_socketio.py'
+
+jobs:
+  websocket:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+      - name: Run WebSocket tests
+        run: pytest tests/test_socketio.py

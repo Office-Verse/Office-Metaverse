@@ -1,0 +1,55 @@
+name: End-to-End Tests
+
+on:
+  push:
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - 'tests/e2e/**'
+  pull_request:
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - 'tests/e2e/**'
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd="pg_isready"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+      redis:
+        image: redis
+        ports: ['6379:6379']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install backend dependencies
+        run: pip install -r backend/requirements.txt
+      - name: Install frontend dependencies
+        run: npm install
+        working-directory: frontend
+      - name: Run Alembic migrations
+        run: alembic upgrade head
+        working-directory: backend
+      - name: Start backend
+        run: python -m app &
+        working-directory: backend
+      - name: Run E2E tests
+        run: npm run test:e2e -- --watchAll=false
+        working-directory: frontend

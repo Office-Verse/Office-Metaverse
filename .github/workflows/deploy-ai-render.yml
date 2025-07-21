@@ -1,0 +1,14 @@
+name: Deploy AI Modules to Render
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ai/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render Deployment
+        run: curl -X POST ${{ secrets.RENDER_AI_DEPLOY_HOOK }}
