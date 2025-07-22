@@ -8,20 +8,40 @@ on:
       - 'backend/**'
 
 jobs:
-  lint:
+  lint-backend:
+    if: contains(github.event.pull_request.head.ref, 'backend')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Backend - Python Lint
-        if: github.event.pull_request.changed_files.paths.any('backend/**')
-        uses: psf/black@stable
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          src: "./backend"
+          python-version: '3.10'
 
-      - name: Frontend - ESLint
-        if: github.event.pull_request.changed_files.paths.any('frontend/**')
+      - name: Install Black
+        run: pip install black
+
+      - name: Run Black on backend
+        run: black --check backend
+
+  lint-frontend:
+    if: contains(github.event.pull_request.head.ref, 'frontend')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install frontend dependencies
         run: |
           cd frontend
           npm install
+
+      - name: Run ESLint
+        run: |
+          cd frontend
           npm run lint
